@@ -1,162 +1,99 @@
-# #!/bin/sh
-# # /etc/uci-defaults/99_migrate_jesse_calibration_to_factory
-# #
-# # Purpose: Migrate Jesse's calibration data files from mtd2 (misc_ro) partition 
-# #          to the empty factory partition (mtd9) for TP-Link Archer C5 v6
-# #
-# # Background: Jesse's firmware stores WiFi calibration and MAC address data as 
-# #             individual files in the misc_ro partition. OpenWRT expects this 
-# #             data in specific offsets within the factory partition.
-# #
-# # Author: kdhingra307
-# # Date: 2025
+#!/bin/sh
+. /lib/functions.sh
 
-# . /lib/functions.sh
+log() {
+    echo "$1"
+    logger -t "jesse-migration" -p kern.info "$1"
+}
 
-# # -----------------------------------------------------------------------------
-# # MAIN MIGRATION FUNCTION (No arguments for now)
-# # -----------------------------------------------------------------------------
-# perform_jesse_migration() {
-#     echo "Starting Jesse calibration data migration to factory partition"
-    
-#     # Check if factory partition exists
-#     if [ ! -c /dev/mtd9 ]; then
-#         echo "Factory partition (mtd9) not found - skipping migration"
-#         return 1
-#     fi
-    
-#     # Check if factory partition is already populated
-#     # if hexdump -n 512 -C /dev/mtd9 2>/dev/null | grep -q -v "ff ff ff ff"; then
-#     #     echo "Factory partition already contains data - skipping migration"
-#     #     return 1
-#     # fi
-    
-#     # Check if Jesse's misc_ro partition exists
-#     if [ ! -c /dev/mtd2 ]; then
-#         echo "Jesse misc_ro partition (mtd2) not found - skipping migration"
-#         return 1
-#     fi
-    
-#     # Mount Jesse's misc_ro partition
-#     echo "Mounting Jesse's misc_ro partition (mtd2)..."
-#     mkdir -p /tmp/misc_ro
-#     if ! mount -t jffs2 -o ro /dev/mtdblock2 /tmp/misc_ro; then
-#         echo "Failed to mount Jesse's misc_ro partition - aborting"
-#         rmdir /tmp/misc_ro
-#         return 1
-#     fi
-    
-#     # Verify required Jesse files exist
-#     missing_files=0
-#     for jesse_file in 0x00180000 0x001A0000 0x0014F100 0x0014F1E0; do
-#         if [ ! -f "/tmp/misc_ro/$jesse_file" ]; then
-#             echo "Warning: Jesse file $jesse_file not found"
-#             missing_files=1
-#         fi
-#     done
-    
-#     if [ "$missing_files" = "1" ]; then
-#         echo "Required Jesse calibration files missing - aborting migration"
-#         umount /tmp/misc_ro
-#         rmdir /tmp/misc_ro
-#         return 1
-#     fi
-    
-#     # Create empty 256KB factory partition image
-#     echo "Creating blank 256KB factory partition image..."
-#     dd if=/dev/zero bs=1024 count=256 2>/dev/null | tr '\000' '\377' > /tmp/factory.bin
-    
-#     if [ ! -f /tmp/factory.bin ]; then
-#         echo "Failed to create factory partition image - aborting"
-#         umount /tmp/misc_ro
-#         rmdir /tmp/misc_ro
-#         return 1
-#     fi
-    
-#     # Copy Jesse's calibration data to factory partition offsets
-#     echo "Migrating Jesse's calibration files..."
-    
-#     # Primary WiFi calibration data (offset 0)
-#     echo "  - Copying primary WiFi calibration data..."
-#     dd if=/tmp/misc_ro/0x00180000 of=/tmp/factory.bin bs=1 count=512 seek=0 conv=notrunc 2>/dev/null
-    
-#     # Extended calibration data (offset 32768)
-#     echo "  - Copying extended calibration data..."
-#     dd if=/tmp/misc_ro/0x001A0000 of=/tmp/factory.bin bs=1 count=1536 seek=32768 conv=notrunc 2>/dev/null
-    
-#     # 2.4GHz MAC address (offset 65536)
-#     echo "  - Copying 2.4GHz WiFi MAC address..."
-#     dd if=/tmp/misc_ro/0x0014F100 of=/tmp/factory.bin bs=1 count=6 seek=65536 conv=notrunc 2>/dev/null
-    
-#     # 5GHz MAC address (offset 98304)
-#     echo "  - Copying 5GHz WiFi MAC address..."
-#     dd if=/tmp/misc_ro/0x0014F1E0 of=/tmp/factory.bin bs=1 count=6 seek=98304 conv=notrunc 2>/dev/null
-    
-#     # Unmount Jesse's misc_ro partition
-#     echo "Unmounting Jesse's misc_ro partition..."
-#     umount /tmp/misc_ro
-#     rmdir /tmp/misc_ro
-    
-#     # Write to factory partition
-#     echo "Writing migrated calibration data to factory partition (mtd9)..."
-    
-#     mtd unlock factory 2>/dev/null
-    
-#     if ! mtd -e factory write /tmp/factory.bin factory; then
-#         echo "ERROR: Failed to write factory partition!"
-#         rm -f /tmp/factory.bin
-#         return 1
-#     fi
-    
-#     # Cleanup
-#     rm -f /tmp/factory.bin
-    
-#     # Verify migration success
-#     echo "Verifying factory partition..."
-#     if hexdump -n 512 -C /dev/mtd9 2>/dev/null | grep -q -v "ff ff ff ff"; then
-#         echo "SUCCESS: Jesse calibration data successfully migrated!"
-        
-#         # Display migrated MAC addresses
-#         echo ""
-#         echo "Migrated MAC addresses:"
-#         echo -n "  2.4GHz MAC: "
-#         hexdump -s 65536 -n 6 -e '6/1 "%02x:" "\n"' /dev/mtd9 2>/dev/null | sed 's/:$//'
-#         echo -n "  5GHz MAC:   "
-#         hexdump -s 98304 -n 6 -e '6/1 "%02x:" "\n"' /dev/mtd9 2>/dev/null | sed 's/:$//'
-        
-#         logger -t "jesse-migration" "Successfully migrated calibration data"
-#         return 0
-#     else
-#         echo "WARNING: Factory partition appears empty after migration"
-#         logger -t "jesse-migration" "Migration may have failed"
-#         return 1
-#     fi
-# }
+perform_jesse_migration() {
+    log "Starting Jesse calibration data migration to factory partition"
 
-# # -----------------------------------------------------------------------------
-# # MAIN EXECUTION
-# # -----------------------------------------------------------------------------
+    if [ ! -c /dev/mtd9 ]; then
+        log "Factory partition (mtd9) not found - skipping migration"
+        return 1
+    fi
 
-# board=$(board_name)
+    if hexdump -n 512 -C /dev/mtd9 2>/dev/null | grep -q -v "ff ff ff ff"; then
+        log "Factory partition already populated - skipping migration"
+        return 0
+    fi
 
-# case "$board" in
-#     tplink,archer-c5-v6-inact)
-#         echo "TP-Link Archer C5 v6 detected - proceeding with Jesse migration"
-        
-#         # Call migration function
-#         if perform_jesse_migration; then
-#             echo "Migration completed successfully."
-#             rm -f "$0"
-#             exit 0
-#         else
-#             echo "Migration failed or was not needed."
-#             rm -f "$0"
-#             exit 1
-#         fi
-#         ;;
-#     *)
-#         echo "Board $board does not require Jesse migration - skipping"
-#         rm -f "$0"
-#         exit 0
-#         ;;
-# esac
+    if [ ! -c /dev/mtd2 ]; then
+        log "Jesse misc_ro partition (mtd2) not found - skipping migration"
+        return 1
+    fi
+
+    mkdir -p /tmp/misc_ro
+    if ! mount -t jffs2 -o ro /dev/mtdblock2 /tmp/misc_ro; then
+        log "Failed to mount Jesse misc_ro partition - aborting"
+        rmdir /tmp/misc_ro
+        return 1
+    fi
+
+    # Verify required files
+    missing_files=0
+    for file in 0x00180000 0x001A0000 0x0014F100 0x0014F1E0; do
+        if [ ! -f "/tmp/misc_ro/$file" ]; then
+            log "Warning: Jesse file $file not found"
+            missing_files=1
+        fi
+    done
+
+    if [ "$missing_files" = "1" ]; then
+        log "Required Jesse files missing - aborting migration"
+        umount /tmp/misc_ro
+        rmdir /tmp/misc_ro
+        return 1
+    fi
+
+    log "Creating blank factory image..."
+    dd if=/dev/zero bs=1024 count=256 2>/dev/null | tr '\000' '\377' > /tmp/factory.bin || {
+        log "Failed to create factory image"
+        umount /tmp/misc_ro
+        rmdir /tmp/misc_ro
+        return 1
+    }
+
+    log "Copying calibration data..."
+    dd if=/tmp/misc_ro/0x00180000 of=/tmp/factory.bin bs=1 count=512 seek=0 conv=notrunc
+    dd if=/tmp/misc_ro/0x001A0000 of=/tmp/factory.bin bs=1 count=1536 seek=32768 conv=notrunc
+    dd if=/tmp/misc_ro/0x0014F100 of=/tmp/factory.bin bs=1 count=6 seek=65536 conv=notrunc
+    dd if=/tmp/misc_ro/0x0014F1E0 of=/tmp/factory.bin bs=1 count=6 seek=98304 conv=notrunc
+
+    umount /tmp/misc_ro
+    rmdir /tmp/misc_ro
+
+    log "Writing factory image to mtd9..."
+    mtd unlock factory
+    if ! mtd -e factory write /tmp/factory.bin factory; then
+        log "ERROR: Failed to write factory partition!"
+        rm -f /tmp/factory.bin
+        return 1
+    fi
+
+    rm -f /tmp/factory.bin
+    log "Verifying factory partition..."
+    if hexdump -n 512 -C /dev/mtd9 2>/dev/null | grep -q -v "ff ff ff ff"; then
+        log "SUCCESS: Calibration data migrated!"
+
+        log "2.4GHz MAC: $(hexdump -s 65536 -n 6 -e '6/1 "%02x:" "\n"' /dev/mtd9 | sed 's/:$//')"
+        log "5GHz MAC:   $(hexdump -s 98304 -n 6 -e '6/1 "%02x:" "\n"' /dev/mtd9 | sed 's/:$//')"
+        return 0
+    else
+        log "WARNING: Factory partition appears empty after migration"
+        return 1
+    fi
+}
+
+board=$(board_name)
+
+case "$board" in
+    tplink,archer-c5-v6-inact)
+        log "Detected TP-Link Archer C5 v6, running migration..."
+        perform_jesse_migration
+        ;;
+    *)
+        log "Board $board does not require migration - skipping"
+        ;;
+esac
