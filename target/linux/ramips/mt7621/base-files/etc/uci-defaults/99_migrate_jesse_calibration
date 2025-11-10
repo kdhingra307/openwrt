@@ -26,10 +26,10 @@ perform_jesse_migration() {
     fi
     
     # Check if factory partition is already populated
-    if hexdump -n 512 -C /dev/mtd9 2>/dev/null | grep -q -v "ff ff ff ff"; then
-        echo "Factory partition already contains data - skipping migration"
-        return 1
-    fi
+    # if hexdump -n 512 -C /dev/mtd9 2>/dev/null | grep -q -v "ff ff ff ff"; then
+    #     echo "Factory partition already contains data - skipping migration"
+    #     return 1
+    # fi
     
     # Check if Jesse's misc_ro partition exists
     if [ ! -c /dev/mtd2 ]; then
