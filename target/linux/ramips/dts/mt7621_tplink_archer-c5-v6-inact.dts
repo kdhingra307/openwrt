@@ -181,10 +181,9 @@
     wifi@0,0 {
         compatible = "mediatek,mt76";
         reg = <0x0000 0 0 0 0>;
-        nvmem-cells = <&eeprom_radio_0>, <&macaddr_radio_10000>;
-        nvmem-cell-names = "eeprom", "mac-address";
+        nvmem-cells = <&eeprom_radio_0>;
+        nvmem-cell-names = "eeprom";
         ieee80211-freq-limit = <2400000 2500000>;
-        mac-address-increment = <2>;
     };
 };
 
@@ -194,10 +193,9 @@
     wifi@0,0 {
         compatible = "pci14c3,7663";
         reg = <0x0000 0 0 0 0>;
-        nvmem-cells = <&eeprom_radio_8000>, <&macaddr_radio_10000>;
-        nvmem-cell-names = "eeprom", "mac-address";
+        nvmem-cells = <&eeprom_radio_8000>;
+        nvmem-cell-names = "eeprom";
         ieee80211-freq-limit = <5000000 6000000>;
-        mac-address-increment = <2>;
     };
 };
 
@@ -224,6 +222,20 @@
             label = "lan4";
         };
     };
+};
+
+&gmac0 {
+    nvmem-cells = <&macaddr_radio_10000>;
+    nvmem-cell-names = "mac-address";
+};
+
+&gmac1 {
+    status = "okay";
+    label = "wan";
+
+    nvmem-cells = <&macaddr_radio_10000>;
+    nvmem-cell-names = "mac-address";
+    mac-address-increment = <1>;
 };
 
 &state_default {
