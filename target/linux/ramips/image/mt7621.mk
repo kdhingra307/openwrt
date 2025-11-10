@@ -2840,7 +2840,6 @@ endef
 TARGET_DEVICES += tplink_archer-a6-v3
 
 define Device/tplink_archer-c5-v6-inact
-  $(Device/dsa-migration)
   TPLINK_BOARD_ID := Archer-C5-V6-INACT
   DEVICE_VENDOR := TP-Link
   DEVICE_MODEL := Archer C5
