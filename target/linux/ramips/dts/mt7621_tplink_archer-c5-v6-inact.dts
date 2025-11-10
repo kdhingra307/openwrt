@@ -226,20 +226,6 @@
     };
 };
 
-&gmac0 {
-    nvmem-cells = <&macaddr_radio_10000>;
-    nvmem-cell-names = "mac-address";
-};
-
-&gmac1 {
-    status = "okay";
-    label = "wan";
-
-    nvmem-cells = <&macaddr_radio_10000>;
-    nvmem-cell-names = "mac-address";
-    mac-address-increment = <1>;
-};
-
 &state_default {
     gpio {
         groups = "i2c", "uart3", "jtag", "wdt";
