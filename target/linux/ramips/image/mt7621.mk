@@ -2839,6 +2839,18 @@ define Device/tplink_archer-a6-v3
 endef
 TARGET_DEVICES += tplink_archer-a6-v3
 
+define Device/tplink_archer-c5-v6-inact
+  $(Device/dsa-migration)
+  $(Device/tplink-safeloader)
+  DEVICE_MODEL := Archer C5
+  DEVICE_VARIANT := v6 INACT
+  DEVICE_PACKAGES := kmod-mt7603 kmod-mt7663 kmod-mt7663-firmware-ap kmod-usb3 kmod-mt7615e kmod-mt7615-common
+  KERNEL := $(KERNEL_DTB) | uImage lzma
+  KERNEL_INITRAMFS := $(KERNEL_DTB) | uImage lzma
+  IMAGE_SIZE := 22528k
+endef
+TARGET_DEVICES += tplink_archer-c5-v6-inact
+
 define Device/tplink_archer-c6-v3
   $(Device/dsa-migration)
   $(Device/tplink-safeloader)
