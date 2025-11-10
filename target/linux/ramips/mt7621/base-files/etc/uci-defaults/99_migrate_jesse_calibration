@@ -140,8 +140,7 @@ perform_jesse_migration() {
 board=$(board_name)
 
 case "$board" in
-    tplink,archer-c5-v6-inact|\
-    tplink,archer-c5-v6)
+    tplink,archer-c5-v6-inact)
         echo "TP-Link Archer C5 v6 detected - proceeding with Jesse migration"
         
         # Call migration function

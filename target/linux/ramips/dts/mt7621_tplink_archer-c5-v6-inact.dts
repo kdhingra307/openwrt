@@ -153,16 +153,19 @@
                 #address-cells = <1>;
                 #size-cells = <1>;
 
+                /* Primary WiFi EEPROM - 0x00180000 file (512 bytes) at offset 0 */
                 eeprom_radio_0: eeprom@0 {
-                    reg = <0x0 0x400>;
+                    reg = <0x0 0x200>;  /* 512 bytes */
                 };
-
+                
+                /* Extended calibration - 0x001A0000 file (1536 bytes) at offset 32768 */
                 eeprom_radio_8000: eeprom@8000 {
-                    reg = <0x8000 0x4da8>;
+                    reg = <0x8000 0x600>;  /* 1536 bytes */
                 };
-
-                macaddr_factory_4: macaddr@4 {
-                    reg = <0x4 0x6>;
+                
+                /* 2.4GHz MAC - 0x0014F100 file (6 bytes) at offset 65536 */
+                macaddr_radio_10000: macaddr@10000 {
+                    reg = <0x10000 0x6>;  /* 6 bytes */
                 };
             };
         };
@@ -223,7 +226,7 @@
 };
 
 &gmac0 {
-    nvmem-cells = <&macaddr_factory_4>;
+    nvmem-cells = <&macaddr_radio_10000>;
     nvmem-cell-names = "mac-address";
 };
 
@@ -232,7 +235,7 @@
     label = "wan";
     phy-handle = <&ethphy0>;
 
-    nvmem-cells = <&macaddr_factory_4>;
+    nvmem-cells = <&macaddr_radio_18000>;
     nvmem-cell-names = "mac-address";
     mac-address-increment = <1>;
 };
