@@ -81,6 +81,21 @@
 			gpios = <&gpio 45 GPIO_ACTIVE_LOW>;
 		};
 	};
+	virtual-flash {
+		compatible = "mtd-concat";
+		devices = <&firmware1 &firmware2>;
+
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			partition@0 {
+				label = "firmware";
+				reg = <0x0 0x2c00000>; // firmware1 + firmware2 size (44 MB)
+			};
+		};
+	};
 };
 
 /* ---- NAND Flash with NMBM ---- */
@@ -118,7 +133,7 @@
 		};
 
 		firmware1: partition@d00000 {
-			label = "firmware";
+			label = "firmware1";
 			reg = <0x0d00000 0x1600000>;
 			compatible = "denx,uimage";
 		};
