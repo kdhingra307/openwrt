@@ -2847,6 +2847,7 @@ define Device/tplink_archer-c5-v6-inact
   DEVICE_VARIANT := v6 INACT
   DEVICE_PACKAGES := kmod-mt7603 kmod-mt7663 kmod-mt7663-firmware-ap kmod-usb3 kmod-mt7615e kmod-mt7615-common
   KERNEL := $(KERNEL_DTB) | uImage lzma
+  KERNEL_LOADADDR := 0x81000000
   KERNEL_INITRAMFS := $(KERNEL_DTB) | uImage lzma
   IMAGE_SIZE := 22528k
 endef
