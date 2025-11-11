@@ -2847,7 +2847,7 @@ define Device/tplink_archer-c5-v6-inact
   DEVICE_MODEL := Archer C5
   DEVICE_VARIANT := v6 INACT
 
-  TPLINK_BOARD_ID := Archer-C5-V6-INACT
+  TPLINK_BOARD_ID := Archer-C6-V3
 
   DEVICE_PACKAGES := \
 	kmod-mt7603 \
@@ -2859,14 +2859,13 @@ define Device/tplink_archer-c5-v6-inact
 
   KERNEL_IN_UBI := 1
 
-  KERNEL_LOADADDR := 0x81000000
   # Kernel and Initramfs are both compressed and packed as FIT images
   KERNEL := kernel-bin | lzma | fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb
-  KERNEL_INITRAMFS := kernel-bin | lzma | fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb
+  KERNEL_INITRAMFS := kernel-bin | lzma | fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb | tplink-v2-header
 
   # NAND flash → use UBI volumes instead of squashfs
   IMAGE/sysupgrade.bin := sysupgrade-tar
-  IMAGE/factory.bin := append-kernel | pad-to 64k | append-ubi | check-size
+  IMAGE/factory.bin := append-kernel | pad-to 64k | append-ubi | tplink-v2-header | check-size
 
   IMAGE_SIZE := 22528k
 endef
