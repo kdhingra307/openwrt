@@ -2840,35 +2840,36 @@ endef
 TARGET_DEVICES += tplink_archer-a6-v3
 
 define Device/tplink_archer-c5-v6-inact
-  $(Device/nand)
-  $(Device/dsa-migration)
+    $(Device/nand)
+    $(Device/dsa-migration)
 
-  DEVICE_VENDOR := TP-Link
-  DEVICE_MODEL := Archer C5
-  DEVICE_VARIANT := v6 INACT
+    DEVICE_VENDOR := TP-Link
+    DEVICE_MODEL := Archer C5
+    DEVICE_VARIANT := v6 INACT
 
-  TPLINK_BOARD_ID := Archer-C6-V3
+    # Use compatible TP-Link board ID
+    TPLINK_BOARD_ID := Archer-C5 V6(INACT)
 
-  DEVICE_PACKAGES := \
-	kmod-mt7603 \
-	kmod-mt7663 \
-	kmod-mt7663-firmware-ap \
-	kmod-usb3 \
-	kmod-mt7615e \
-	kmod-mt7615-common
+    DEVICE_PACKAGES := \
+        kmod-mt7603 \
+        kmod-mt7663 \
+        kmod-mt7663-firmware-ap \
+        kmod-usb3 \
+        kmod-mt7615e \
+        kmod-mt7615-common
 
-  KERNEL_IN_UBI := 1
+    # Kernel + UBI rootfs for NAND
+    KERNEL_IN_UBI := 1
 
-  # Kernel and Initramfs are both compressed and packed as FIT images
-  KERNEL := kernel-bin | lzma | fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb
-  KERNEL_INITRAMFS := kernel-bin | lzma | fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb | tplink-v2-header
+    # FIT LZMA kernel
+    KERNEL := kernel-bin | lzma | fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb
+    KERNEL_INITRAMFS := kernel-bin | lzma | fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb
 
-  # NAND flash → use UBI volumes instead of squashfs
-  IMAGE/sysupgrade.bin := sysupgrade-tar
-  IMAGE/factory.bin := append-kernel | pad-to 64k | append-ubi | tplink-v2-header | check-size
-
-  IMAGE_SIZE := 22528k
+    # NAND factory image: kernel + UBI
+    IMAGE/factory.bin := append-kernel | pad-to 64k | append-ubi | check-size
+    IMAGE_SIZE := 22528k
 endef
+
 TARGET_DEVICES += tplink_archer-c5-v6-inact
 
 define Device/tplink_archer-c6-v3
