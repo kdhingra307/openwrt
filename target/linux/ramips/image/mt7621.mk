@@ -2870,6 +2870,7 @@ define Device/tplink_archer-c5-v6-inact
 
   IMAGE_SIZE := 22528k
 endef
+TARGET_DEVICES += tplink_archer-c5-v6-inact
 
 define Device/tplink_archer-c6-v3
   $(Device/dsa-migration)
