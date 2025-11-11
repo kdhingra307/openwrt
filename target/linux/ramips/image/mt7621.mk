@@ -2858,7 +2858,6 @@ define Device/tplink_archer-c5-v6-inact
 	kmod-mt7615-common
 
   KERNEL_IN_UBI := 1
-  KERNEL_LOADADDR := 0x82000000
 
   # Kernel and Initramfs are both compressed and packed as FIT images
   KERNEL := kernel-bin | lzma | fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb
