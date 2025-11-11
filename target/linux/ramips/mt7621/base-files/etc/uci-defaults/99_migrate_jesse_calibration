@@ -2,8 +2,7 @@
 . /lib/functions.sh
 
 log() {
-    echo "$1"
-    logger -t "jesse-migration" -p kern.info "$1"
+    echo "$1" > /dev/kmsg
 }
 
 perform_jesse_migration() {
@@ -14,10 +13,10 @@ perform_jesse_migration() {
         return 1
     fi
 
-    if hexdump -n 512 -C /dev/mtd9 2>/dev/null | grep -q -v "ff ff ff ff"; then
-        log "Factory partition already populated - skipping migration"
-        return 0
-    fi
+    # if hexdump -n 512 -C /dev/mtd9 2>/dev/null | grep -q -v "ff ff ff ff"; then
+    #     log "Factory partition already populated - skipping migration"
+    #     return 0
+    # fi
 
     if [ ! -c /dev/mtd2 ]; then
         log "Jesse misc_ro partition (mtd2) not found - skipping migration"
