@@ -2857,7 +2857,7 @@ define Device/tplink_archer-c5-v6-inact
         kmod-mt7615e \
         kmod-mt7615-common
 
-    KERNEL := $(KERNEL_DTB) | uImage lzma | pad-to 64k
+    KERNEL := kernel-bin | lzma | fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb | pad-to 64k
     IMAGE_SIZE := 22528k
 endef
 
