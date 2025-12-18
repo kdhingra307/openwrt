@@ -2858,15 +2858,9 @@ define Device/tplink_archer-c5-v6-inact
         kmod-mt7615e \
         kmod-mt7615-common
 
-    # Kernel + UBI rootfs for NAND
     KERNEL_IN_UBI := 1
-
-    # FIT LZMA kernel
-    KERNEL := kernel-bin | lzma | fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb
-    KERNEL_INITRAMFS := kernel-bin | lzma | fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb
-
-    # NAND factory image: kernel + UBI
-    IMAGE/factory.bin := append-kernel | pad-to 64k | append-ubi | check-size
+    KERNEL := kernel-bin | lzma | \
+	  fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb
     IMAGE_SIZE := 22528k
 endef
 
