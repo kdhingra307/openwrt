@@ -2856,8 +2856,8 @@ define Device/tplink_archer-c5-v6-inact
         kmod-usb3 \
         kmod-mt7615e \
         kmod-mt7615-common
-
-    KERNEL := $(KERNEL_DTB) | uImage lzma
+        
+    KERNEL := $(KERNEL_DTB) | uImage lzma | pad-to 64k
     KERNEL_INITRAMFS := $(KERNEL_DTB) | uImage lzma
     IMAGE_SIZE := 22528k
 endef
