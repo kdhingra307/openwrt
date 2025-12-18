@@ -2854,7 +2854,7 @@ define Device/tplink_archer-c5-v6-inact
         kmod-mt7615-common
     KERNEL := kernel-bin | lzma | fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb | pad-to 64k
     IMAGE_SIZE := 22528k
-    IMAGE/sysupgrade.bin := append-kernel | append-rootfs | pad-rootfs | append-metadata
+    IMAGE/sysupgrade.bin := append-kernel | append-metadata | check-size $$$$(IMAGE_SIZE) | pad-to $$$$(IMAGE_SIZE) | append-ubi
 endef
 
 TARGET_DEVICES += tplink_archer-c5-v6-inact
