@@ -2841,14 +2841,10 @@ TARGET_DEVICES += tplink_archer-a6-v3
 
 define Device/tplink_archer-c5-v6-inact
     $(Device/dsa-migration)
-
     DEVICE_VENDOR := TP-Link
     DEVICE_MODEL := Archer C5
     DEVICE_VARIANT := v6 INACT
-
-    # Use compatible TP-Link board ID
     TPLINK_BOARD_ID := Archer-C5 V6(INACT)
-
     DEVICE_PACKAGES := \
         kmod-mt7603 \
         kmod-mt7663 \
@@ -2856,9 +2852,9 @@ define Device/tplink_archer-c5-v6-inact
         kmod-usb3 \
         kmod-mt7615e \
         kmod-mt7615-common
-
     KERNEL := kernel-bin | lzma | fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb | pad-to 64k
     IMAGE_SIZE := 22528k
+    IMAGE/sysupgrade.bin := append-kernel | append-rootfs | pad-rootfs | append-metadata
 endef
 
 TARGET_DEVICES += tplink_archer-c5-v6-inact
