@@ -11,9 +11,9 @@ PKG_NAME:=udebug
 CMAKE_INSTALL:=1
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL=$(PROJECT_GIT)/project/udebug.git
-PKG_MIRROR_HASH:=d198d95f83f0d2c17ea30039db85a4bd50360886b0963e227d2d879406b79c27
-PKG_SOURCE_DATE:=2025-09-28
-PKG_SOURCE_VERSION:=5327524e715332daaebf6b04c155d2880d230979
+PKG_MIRROR_HASH:=b1696025aedcc68927d97b5e9503dbe6bd2fafa34495f7a5d90d63b7fa1970dc
+PKG_SOURCE_DATE:=2026-09-25
+PKG_SOURCE_VERSION:=6726e98ad69402e79b6d0b305012ace857ca0786
 PKG_ABI_VERSION:=$(call abi_version_str,$(PKG_SOURCE_DATE))
 
 PKG_LICENSE:=GPL-2.0
@@ -73,7 +73,7 @@ endef
 
 define Package/udebug-cli/install
 	$(INSTALL_DIR) $(1)/usr/sbin
-	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/sbin/udebug-cli $(1)/usr/sbin/udebug
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/sbin/udebug $(1)/usr/sbin/udebug
 endef
 
 $(eval $(call BuildPackage,libudebug))

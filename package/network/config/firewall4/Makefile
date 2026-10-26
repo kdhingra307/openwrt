@@ -9,9 +9,9 @@ PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL=$(PROJECT_GIT)/project/firewall4.git
-PKG_SOURCE_DATE:=2025-03-17
-PKG_SOURCE_VERSION:=b6e5157527d361f99ad52eaa6da273cb0f2dfd59
-PKG_MIRROR_HASH:=fb563b493411922a8fbddf6a5a6766cffa47f87621e056b8dcf38309091835eb
+PKG_SOURCE_DATE:=2026-10-26
+PKG_SOURCE_VERSION:=bac1d656e09b48e542f860844fe91cbba82abae2
+PKG_MIRROR_HASH:=7b51b16d21cf17a7f1ba05bab49e92f3368f75a18301d8fb4edf4c610e6e4007
 PKG_MAINTAINER:=Jo-Philipp Wich <jo@mein.io>
 PKG_LICENSE:=ISC
 
@@ -28,6 +28,7 @@ define Package/firewall4
 	+ucode +ucode-mod-fs +ucode-mod-ubus +ucode-mod-uci
   EXTRA_DEPENDS:=ucode (>=2022.03.22)
   PROVIDES:=uci-firewall
+  DEFAULT_VARIANT:=1
 endef
 
 define Package/firewall4/description

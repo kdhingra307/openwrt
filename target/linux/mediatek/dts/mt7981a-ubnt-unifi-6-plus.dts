@@ -99,8 +99,6 @@
 	status = "okay";
 
 	flash@0 {
-		#address-cells = <1>;
-		#size-cells = <1>;
 		compatible = "jedec,spi-nor";
 		reg = <0>;
 
@@ -113,7 +111,7 @@
 			#address-cells = <1>;
 			#size-cells = <1>;
 
-			eeprom: partition@0 {
+			partition@0 {
 				label = "EEPROM";
 				reg = <0x00000 0x10000>;
 				read-only;
