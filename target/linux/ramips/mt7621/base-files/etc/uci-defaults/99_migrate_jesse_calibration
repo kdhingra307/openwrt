@@ -1,0 +1,73 @@
+#!/bin/sh
+# The vendor firmware keeps the radio calibration and Wi-Fi MAC addresses
+# as files inside the JFFS2 misc_ro partition. mt7603 and mt7615 can only
+# read them from raw flash, so copy them once into the factory partition.
+
+. /lib/functions.sh
+
+[ "$(board_name)" = "tplink,archer-c5-v6-inact" ] || exit 0
+
+log() {
+	echo "jesse-migration: $1" > /dev/kmsg
+}
+
+# <mtd char device> <bytes>: true if the first <bytes> are all 0xff
+is_blank() {
+	[ "$(head -c "$2" "$1" | tr -d '\377' | wc -c)" -eq 0 ]
+}
+
+# <file> <offset in image> <minimum size> <maximum size>
+copy_part() {
+	local file="$src/$1" len
+
+	[ -f "$file" ] || { log "$1 not found"; return 1; }
+	len=$(wc -c < "$file")
+	[ "$len" -ge "$3" ] || { log "$1 is $len bytes, expected at least $3"; return 1; }
+	[ "$len" -le "$4" ] || len=$4
+
+	dd if="$file" of="$img" bs=1 count="$len" seek="$(($2))" conv=notrunc 2>/dev/null
+}
+
+factory_idx=$(find_mtd_index factory)
+misc_ro_idx=$(find_mtd_index misc_ro)
+[ -n "$factory_idx" ] && [ -n "$misc_ro_idx" ] || { log "factory or misc_ro partition missing"; exit 1; }
+factory=/dev/mtd$factory_idx
+
+is_blank "$factory" 1024 || { log "factory already populated, skipping"; exit 0; }
+
+src=/tmp/misc_ro
+img=/tmp/factory.bin
+mkdir -p "$src"
+mount -t jffs2 -o ro "/dev/mtdblock$misc_ro_idx" "$src" || { log "failed to mount misc_ro"; rmdir "$src"; exit 1; }
+
+dd if=/dev/zero bs=1024 count=256 2>/dev/null | tr '\000' '\377' > "$img"
+
+ret=0
+copy_part 0x00180000 0x0     0x200 0x400  || ret=1	# MT7603 2.4 GHz EEPROM
+copy_part 0x001A0000 0x8000  0x600 0x4da8 || ret=1	# MT7663 5 GHz EEPROM
+copy_part 0x0014F100 0x10000 6     6      || ret=1	# base (label) MAC
+
+umount "$src"
+rmdir "$src"
+
+if [ "$ret" -ne 0 ]; then
+	log "calibration files incomplete, leaving factory untouched"
+	rm -f "$img"
+	exit 1
+fi
+
+if ! mtd -e factory write "$img" factory; then
+	log "failed to write factory partition"
+	rm -f "$img"
+	exit 1
+fi
+
+if ! head -c "$(wc -c < "$img")" "$factory" | cmp -s - "$img"; then
+	log "factory partition does not match after write"
+	rm -f "$img"
+	exit 1
+fi
+
+rm -f "$img"
+log "calibration migrated, takes effect on next boot"
+exit 0

@@ -136,6 +136,9 @@ snr,snr-cpe-me2-sfp|\
 snr,cpe-w4n-mt)
 	ubootenv_add_mtd "uboot-env" "0x0" "0x1000" "0x1000"
 	;;
+tplink,archer-c5-v6-inact)
+	ubootenv_add_mtd "boot_env" "0x0" "0x20000" "0x20000"
+	;;
 xiaomi,mi-router-3-pro|\
 xiaomi,mi-router-3g|\
 xiaomi,mi-router-4|\
