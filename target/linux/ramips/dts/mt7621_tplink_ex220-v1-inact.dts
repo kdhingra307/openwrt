@@ -1,0 +1,233 @@
+// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+/*
+ * TP-Link EX220 v1, INACT variant.
+ *
+ * Same hardware as tplink,ex220-v1-nand, but the INACT vendor firmware
+ * uses the smaller flash layout of tplink,archer-c5-v6-inact: 22 MB
+ * firmware slots, firmware2 at 0x2300000 and misc_isp at 0x4500000.
+ * The label MAC is not at the misc_ro offset used by the MTS board, so
+ * MAC addresses come from labelMac in the bootloader environment.
+ */
+
+#include "mt7621.dtsi"
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/input/input.h>
+#include <dt-bindings/leds/common.h>
+
+/ {
+	compatible = "tplink,ex220-v1-inact", "mediatek,mt7621-soc";
+	model = "TP-Link EX220 v1 (INACT)";
+
+	aliases {
+		led-boot = &led_power;
+		led-failsafe = &led_power;
+		led-running = &led_power;
+		led-upgrade = &led_power;
+	};
+
+	/*
+	 * The bootloader replaces bootargs with its own, including
+	 * ubi.mtd=misc_isp, which stops the kernel from attaching "ubi".
+	 */
+	chosen {
+		bootargs-override = "console=ttyS0,115200";
+	};
+
+	keys {
+		compatible = "gpio-keys";
+
+		button-wps {
+			label = "rfkill";
+			gpios = <&gpio 7 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_RFKILL>;
+		};
+
+		button-reset {
+			label = "reset";
+			gpios = <&gpio 8 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_RESTART>;
+		};
+	};
+
+	leds {
+		compatible = "gpio-leds";
+
+		led-wps {
+			color = <LED_COLOR_ID_GREEN>;
+			function = LED_FUNCTION_WPS;
+			gpios = <&gpio 3 GPIO_ACTIVE_LOW>;
+		};
+
+		led-lan {
+			color = <LED_COLOR_ID_GREEN>;
+			function = LED_FUNCTION_LAN;
+			gpios = <&gpio 4 GPIO_ACTIVE_LOW>;
+		};
+
+		led-wan-orange {
+			color = <LED_COLOR_ID_AMBER>;
+			function = LED_FUNCTION_WAN;
+			gpios = <&gpio 13 GPIO_ACTIVE_LOW>;
+		};
+
+		led-wan-green {
+			color = <LED_COLOR_ID_GREEN>;
+			function = LED_FUNCTION_WAN;
+			gpios = <&gpio 14 GPIO_ACTIVE_LOW>;
+		};
+
+		led-wifi5g {
+			color = <LED_COLOR_ID_GREEN>;
+			function = LED_FUNCTION_WLAN;
+			function-enumerator = <5>;
+			gpios = <&gpio 15 GPIO_ACTIVE_LOW>;
+			linux,default-trigger = "phy1tpt";
+		};
+
+		led-wifi2g {
+			color = <LED_COLOR_ID_GREEN>;
+			function = LED_FUNCTION_WLAN;
+			function-enumerator = <2>;
+			gpios = <&gpio 16 GPIO_ACTIVE_LOW>;
+			linux,default-trigger = "phy0tpt";
+		};
+
+		led_power: led-power {
+			color = <LED_COLOR_ID_GREEN>;
+			function = LED_FUNCTION_POWER;
+			gpios = <&gpio 18 GPIO_ACTIVE_LOW>;
+		};
+	};
+};
+
+&nand {
+	status = "okay";
+
+	/*
+	 * The vendor bootloader accesses the NAND through NMBM, whose
+	 * management tables live in the topmost blocks.
+	 */
+	mediatek,nmbm;
+	mediatek,bmt-remap-range = <0x0 0x7800000>;
+
+	partitions {
+		compatible = "fixed-partitions";
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		partition@0 {
+			label = "boot";
+			reg = <0x0 0x80000>;
+			read-only;
+		};
+
+		partition@80000 {
+			label = "boot_env";
+			reg = <0x80000 0x80000>;
+		};
+
+		partition@100000 {
+			label = "misc_ro";
+			reg = <0x100000 0x600000>;
+			read-only;
+		};
+
+		partition@700000 {
+			label = "misc_rw";
+			reg = <0x700000 0x600000>;
+		};
+
+		/*
+		 * The vendor firmware1 slot (0xd00000, 22 MB) is split in two:
+		 * a raw kernel FIT at the start, which the bootloader loads from
+		 * that fixed address, and UBI for the rest.
+		 */
+		partition@d00000 {
+			label = "kernel";
+			reg = <0xd00000 0x400000>;
+		};
+
+		partition@1100000 {
+			label = "ubi";
+			reg = <0x1100000 0x1200000>;
+		};
+
+		partition@2300000 {
+			label = "firmware2";
+			reg = <0x2300000 0x1600000>;
+			read-only;
+		};
+
+		partition@3900000 {
+			label = "bflag";
+			reg = <0x3900000 0x600000>;
+		};
+
+		partition@3f00000 {
+			label = "misc_rw_bak";
+			reg = <0x3f00000 0x600000>;
+		};
+
+		partition@4500000 {
+			label = "misc_isp";
+			reg = <0x4500000 0x600000>;
+		};
+	};
+};
+
+&pcie {
+	status = "okay";
+};
+
+&pcie1 {
+	wifi@0,0 {
+		compatible = "mediatek,mt76";
+		reg = <0x0000 0 0 0 0>;
+		mediatek,disable-radar-background;
+
+		/*
+		 * The calibration data sits inside a JFFS2 file in the misc_ro
+		 * partition, so it is copied over the default EEPROM at boot by
+		 * the target's 11-mt76-caldata hotplug script. The per-band
+		 * addresses are set by 10_fix_wifi_mac.
+		 */
+	};
+};
+
+&switch0 {
+	ports {
+		/* LAN1..LAN4 sockets are ports 0..3, the WAN socket is port 4 */
+		port@0 {
+			status = "okay";
+			label = "lan1";
+		};
+
+		port@1 {
+			status = "okay";
+			label = "lan2";
+		};
+
+		port@2 {
+			status = "okay";
+			label = "lan3";
+		};
+
+		port@3 {
+			status = "okay";
+			label = "lan4";
+		};
+
+		port@4 {
+			status = "okay";
+			label = "wan";
+		};
+	};
+};
+
+&state_default {
+	gpio {
+		groups = "i2c", "uart3", "jtag", "wdt";
+		function = "gpio";
+	};
+};

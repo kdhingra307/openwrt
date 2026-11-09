@@ -58,6 +58,27 @@ platform_do_upgrade() {
 	mikrotik,routerboard-m33g)
 		[ "$(rootfs_type)" = "tmpfs" ] && mtd erase firmware
 		;;
+	tplink,ex220-v1-inact)
+		# The bootloader only boots firmware1 if the MD5 over its first
+		# fw1_length bytes matches fw1_checksum, so describe the new
+		# kernel before it is written. Of two valid slots it boots the
+		# one with the higher fw*_version, so also move firmware1 past
+		# both slots.
+		local board_dir="$(tar tf "$1" | grep -m 1 '^sysupgrade-.*/$')"
+		local kernel="${board_dir%/}/kernel"
+		local kernel_length="$(tar xOf "$1" "$kernel" | wc -c)"
+		local kernel_md5="$(tar xOf "$1" "$kernel" | md5sum | awk '{ print toupper($1) }')"
+		local fw1_version="$(fw_printenv -n fw1_version 2>/dev/null)"
+		local fw2_version="$(fw_printenv -n fw2_version 2>/dev/null)"
+
+		[ "${fw1_version:-0}" -gt "${fw2_version:-0}" ] || fw1_version="$fw2_version"
+		fw1_version=$((${fw1_version:-0} + 1))
+
+		[ "$kernel_length" -gt 0 ] && [ -n "$kernel_md5" ] || exit 1
+		printf 'fw1_length %s\nfw1_checksum %s\nfw1_status 0\nfw1_version %s\nfw_index 1\n' \
+			"$kernel_length" "$kernel_md5" "$fw1_version" > /tmp/fw1_env
+		fw_setenv -s /tmp/fw1_env || exit 1
+		;;
 	asus,rt-ac65p|\
 	asus,rt-ac85p)
 		echo "Backing up firmware"
@@ -148,6 +169,7 @@ platform_do_upgrade() {
 	sim,simax1800t|\
 	sim,simax1800u|\
 	tplink,ec330-g5u-v1|\
+	tplink,ex220-v1-inact|\
 	tplink,ex220-v1-nand|\
 	wifire,s1500-nbn|\
 	xiaomi,mi-router-3g|\

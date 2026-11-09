@@ -9,6 +9,7 @@ board=$(board_name)
 case "$FIRMWARE" in
 "mediatek/mt7915_eeprom_dbdc.bin")
 	case "$board" in
+	tplink,ex220-v1-inact|\
 	tplink,ex220-v1-nand)
 		EEPROM=/lib/firmware/$FIRMWARE
 		mkdir -p /tmp/rom_file

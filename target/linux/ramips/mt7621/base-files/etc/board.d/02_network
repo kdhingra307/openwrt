@@ -287,6 +287,13 @@ ramips_setup_macs()
 		wan_mac=$(mtd_get_mac_ascii Config wan_hwaddr)
 		label_mac=$lan_mac
 		;;
+	tplink,ex220-v1-inact)
+		label_mac=$(mtd_get_mac_ascii boot_env labelMac)
+		lan_mac=$label_mac
+		# stock uses label + 1 with the first octet replaced by aa
+		wan_mac=$(macaddr_add "$label_mac" 1)
+		wan_mac="aa:${wan_mac#*:}"
+		;;
 	tplink,er605-v1)
 		label_mac=$(mtd_get_mac_uci_config "tddp")
 		lan_mac=$label_mac
