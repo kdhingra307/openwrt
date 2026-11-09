@@ -1568,7 +1568,7 @@ define Device/gemtek_wvrtm-1xxacn
   IMAGE_SIZE := 122368k
   DEVICE_VENDOR := Gemtek
   DEVICE_PACKAGES := kmod-gpio-nxp-74hc164 kmod-spi-gpio \
-  kmod-usb3 -uboot-envtools 
+  kmod-usb3 -uboot-envtools
 endef
 
 define Device/gemtek_wvrtm-127acn
@@ -3046,7 +3046,7 @@ define Device/tplink_archer-c5-v6-inact
   DEVICE_VENDOR := TP-Link
   DEVICE_MODEL := Archer C5
   DEVICE_VARIANT := v6 (INACT)
-  DEVICE_PACKAGES := kmod-mt7603 kmod-mt7615e kmod-mt7663-firmware-ap luci
+  DEVICE_PACKAGES := kmod-mt7603 kmod-mt7615e kmod-mt7663-firmware-ap
   KERNEL_LOADADDR := 0x82000000
   KERNEL := kernel-bin | relocate-kernel $(loadaddr-y) | lzma | \
 	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb
